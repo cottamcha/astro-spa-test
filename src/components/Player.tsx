@@ -148,7 +148,7 @@ export default function Player() {
             {artist}
           </div>
         </div>
-        <audio ref={audioPlayerRef} src="/mp3/song1.mp3" />
+        <audio ref={el => (audioPlayerRef = el)} src="/mp3/song1.mp3" />
         <div class="flex gap-6 items-center text-black">
           <button
             type="button"
