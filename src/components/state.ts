@@ -1,4 +1,4 @@
-import { signal } from "@preact/signals";
+import { createSignal } from 'solid-js';
 
 export type Track = {
   id: string;
@@ -14,5 +14,5 @@ export type PlayerTrack = Track & {
   imageUrl: string;
 };
 
-export const isPlaying = signal(false);
-export const currentTrack = signal<PlayerTrack | null>(null);
+export const [isPlaying, setIsPlaying] = createSignal(false);
+export const [currentTrack, setCurrentTrack] = createSignal<PlayerTrack | null>(null);

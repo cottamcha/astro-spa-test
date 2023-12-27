@@ -1,6 +1,6 @@
-import { currentTrack, isPlaying } from './state'
 
-import { useEffect, useState, useRef } from 'preact/hooks'
+import { currentTrack, isPlaying, setIsPlaying } from './state'
+import { createEffect, createSignal, onCleanup, } from 'solid-js'
 
 const PlayIcon = (
   <svg
@@ -9,7 +9,6 @@ const PlayIcon = (
     fill="currentColor"
     class="w-10 h-10 sm:w-14 sm:h-14"
     aria-hidden="true"
-    focusable="false"
   >
     <path
       fill-rule="evenodd"
@@ -26,7 +25,7 @@ const PauseIcon = (
     fill="currentColor"
     class="w-10 h-10 sm:w-14 sm:h-14"
     aria-hidden="true"
-    focusable="false"
+
   >
     <path
       fill-rule="evenodd"
@@ -41,57 +40,68 @@ const PauseIcon = (
 const MAX_SONGS = 4
 
 export default function Player() {
-  const audioPlayer = useRef<HTMLAudioElement>(null)
-  const progressRef = useRef(null)
-  const [songIndex, setSongIndex] = useState(4)
-  const [progress, setProgress] = useState(0)
+  let audioPlayerRef 
+  let progressRef = null
+  const [songIndex, setSongIndex] = createSignal(4)
+  const [progress, setProgress] = createSignal(0)
 
-  if (currentTrack.value === null) {
-    return
+  const track = currentTrack()
+
+
+  if (!track) {
+    return null
   }
 
-  const { title, artist, albumName, imageUrl } = currentTrack.value
+  const { title, artist, albumName, imageUrl } = track
 
   function whilePlaying() {
-    if (audioPlayer.current.duration) {
+    if (audioPlayerRef && audioPlayerRef.duration) {
       const percentage =
-        (audioPlayer.current.currentTime * 100) / audioPlayer.current.duration
+        (audioPlayerRef.currentTime * 100) / audioPlayerRef.duration
       setProgress(percentage)
     }
-    progressRef.current = requestAnimationFrame(whilePlaying)
+    progressRef = requestAnimationFrame(whilePlaying)
   }
 
-  useEffect(() => {
-    const newIndex = (songIndex % MAX_SONGS) + 1
-    audioPlayer.current.src = `/mp3/song${newIndex}.mp3`
-    audioPlayer.current.currentTime = 0
-    audioPlayer.current.play()
-    setSongIndex(newIndex)
-  }, [title])
+  createEffect(() => {
+    const track = currentTrack()
+    if(!track) return
 
-  useEffect(() => {
-    if (isPlaying.value) {
-      audioPlayer.current?.play()
-      progressRef.current = requestAnimationFrame(whilePlaying)
+    const newIndex = (songIndex() % MAX_SONGS) + 1
+    audioPlayerRef.src = `/mp3/song${newIndex}.mp3`
+    audioPlayerRef.currentTime = 0
+    audioPlayerRef.play()
+    setSongIndex(newIndex)
+  })
+
+  createEffect(() => {
+    if (isPlaying()) {
+      audioPlayerRef.play()
+      progressRef = requestAnimationFrame(whilePlaying)
     } else {
-      audioPlayer.current?.pause()
+      audioPlayerRef.pause()
       cancelAnimationFrame(progressRef.current)
     }
-  }, [isPlaying.value])
+  })
 
-  useEffect(() => {
-    if (progress >= 99.99) {
-      isPlaying.value = false
+  createEffect(() => {
+    if (progress() >= 99.99) {
+      setIsPlaying(false) 
       setProgress(0)
     }
-  }, [progress])
+  })
+
+  onCleanup(() => {
+    console.log("on cleanup triggered")
+    cancelAnimationFrame(progressRef)
+  })
 
   return (
     <div
       class="fixed bottom-0 left-0 right-0 bg-gray-100 z-10"
       role="region"
       aria-labelledby="audio-player-heading"
-      style={{ viewTransitionName: 'player' }}
+      style={{ 'view-transition-name': 'player' }}
     >
       <h2 id="audio-player-heading" class="sr-only">
         Audio player
@@ -103,22 +113,22 @@ export default function Player() {
           aria-label="audio timeline"
           aria-valuemin={0}
           aria-valuemax={
-            audioPlayer.current && audioPlayer.current.duration
-              ? Math.floor(audioPlayer.current.duration)
+            audioPlayerRef && audioPlayerRef.duration
+              ? Math.floor(audioPlayerRef.duration)
               : 0
           }
           aria-valuenow={
-            audioPlayer.current && audioPlayer.current.currentTime
-              ? Math.floor(audioPlayer.current.currentTime)
+            audioPlayerRef && audioPlayerRef.currentTime
+              ? Math.floor(audioPlayerRef.currentTime)
               : 0
           }
           aria-valuetext={`${
-            audioPlayer.current && audioPlayer.current.currentTime
-              ? Math.floor(audioPlayer.current.currentTime)
+            audioPlayerRef && audioPlayerRef.currentTime
+              ? Math.floor(audioPlayerRef.currentTime)
               : 0
           } seconds`}
           class="bg-pink-700 h-1.5"
-          style={`width: ${progress}%`}
+          style={`width: ${progress()}%`}
         ></div>
       </div>
       <div class="container mx-auto max-w-screen-lg px-3 py-2 sm:px-6 sm:py-4 flex items-center gap-5">
@@ -138,7 +148,7 @@ export default function Player() {
             {artist}
           </div>
         </div>
-        <audio ref={audioPlayer} src="/mp3/song1.mp3" />
+        <audio ref={audioPlayerRef} src="/mp3/song1.mp3" />
         <div class="flex gap-6 items-center text-black">
           <button
             type="button"
@@ -151,7 +161,6 @@ export default function Player() {
               fill="currentColor"
               class="w-10 h-10 hidden sm:block"
               aria-hidden="true"
-              focusable="false"
             >
               <path d="M9.195 18.44c1.25.713 2.805-.19 2.805-1.629v-2.34l6.945 3.968c1.25.714 2.805-.188 2.805-1.628V8.688c0-1.44-1.555-2.342-2.805-1.628L12 11.03v-2.34c0-1.44-1.555-2.343-2.805-1.629l-7.108 4.062c-1.26.72-1.26 2.536 0 3.256l7.108 4.061z" />
             </svg>
@@ -161,10 +170,10 @@ export default function Player() {
           <button
             type="button"
             class="focus-visible:ring-2 focus:outline-none focus:ring-black"
-            onClick={() => (isPlaying.value = !isPlaying.value)}
+            onClick={() => setIsPlaying(!isPlaying())}
           >
-            {isPlaying.value ? PauseIcon : PlayIcon}
-            <span class="sr-only">{isPlaying.value ? 'Pause' : 'Play'}</span>
+            {isPlaying() ? PauseIcon : PlayIcon}
+            <span class="sr-only">{isPlaying() ? 'Pause' : 'Play'}</span>
           </button>
 
           <button
@@ -178,7 +187,6 @@ export default function Player() {
               fill="currentColor"
               class="w-10 h-10 hidden sm:block"
               aria-hidden="true"
-              focusable="false"
             >
               <path d="M5.055 7.06c-1.25-.714-2.805.189-2.805 1.628v8.123c0 1.44 1.555 2.342 2.805 1.628L12 14.471v2.34c0 1.44 1.555 2.342 2.805 1.628l7.108-4.061c1.26-.72 1.26-2.536 0-3.256L14.805 7.06C13.555 6.346 12 7.25 12 8.688v2.34L5.055 7.06z" />
             </svg>

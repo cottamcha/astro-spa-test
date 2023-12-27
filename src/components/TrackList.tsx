@@ -1,5 +1,4 @@
-import type { JSX } from 'preact/jsx-runtime'
-import { currentTrack, isPlaying, type Track } from './state'
+import { currentTrack, setCurrentTrack, isPlaying, type Track, setIsPlaying } from './state'
 
 type Props = {
   tracks: Track[]
@@ -16,7 +15,6 @@ const playIcon = (
     viewBox="0 0 20 20"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
-    focusable="false"
   >
     <path
       fill-rule="evenodd"
@@ -33,7 +31,6 @@ const pauseIcon = (
     fill="currentColor"
     class="w-6 h-6 ml-1 text-pink-600"
     aria-hidden="true"
-    focusable="false"
   >
     <path
       fill-rule="evenodd"
@@ -43,7 +40,7 @@ const pauseIcon = (
   </svg>
 )
 
-function renderIcon(icon: JSX.Element, position: number) {
+function renderIcon({icon, position}) {
   return (
     <span>
       {icon}
@@ -52,7 +49,7 @@ function renderIcon(icon: JSX.Element, position: number) {
   )
 }
 
-export default function TrackList({
+function TrackList({
   tracks,
   albumId,
   albumName,
@@ -62,8 +59,8 @@ export default function TrackList({
   return (
     <ul class="text-xl" aria-label="Tracklist">
       {tracks.map((track, index) => {
-        const isCurrentTrack = track.id == currentTrack.value?.id
-
+        const current = currentTrack();
+        const isCurrentTrack = current && track.id == current.id;
         return (
           <li class="first:border-t border-b">
             <button
@@ -71,22 +68,21 @@ export default function TrackList({
               class="hover:bg-gray-50 focus-visible:ring-2 focus:outline-none focus:ring-black cursor-pointer px-6 py-4 flex basis grow w-full items-center"
               aria-current={isCurrentTrack}
               onClick={() => {
-                currentTrack.value = {
+                setCurrentTrack({
                   ...track,
                   albumName,
                   albumId,
                   artist,
                   imageUrl,
-                }
-
-                isPlaying.value = isCurrentTrack ? !isPlaying.value : true
+                })
+                setIsPlaying(isCurrentTrack ? !isPlaying() : true)  
               }}
             >
               <span class="text-gray-500 w-8 mr-2">
-                {isCurrentTrack && !isPlaying.value
-                  ? renderIcon(pauseIcon, track.position)
-                  : isCurrentTrack && isPlaying.value
-                  ? renderIcon(playIcon, track.position)
+                {isCurrentTrack && !isPlaying()
+                  ? renderIcon({ icon: pauseIcon, position: track.position })
+                  : isCurrentTrack && isPlaying()
+                  ? renderIcon({ icon: playIcon, position: track.position })
                   : track.position}
               </span>
               <span class="sr-only"> - </span>
@@ -96,7 +92,7 @@ export default function TrackList({
 
               <span class="sr-only">
                 (press to{' '}
-                {isCurrentTrack && isPlaying.value ? 'pause)' : 'play)'}
+                {isCurrentTrack && isPlaying() ? 'pause)' : 'play)'}
               </span>
             </button>
           </li>
@@ -105,3 +101,5 @@ export default function TrackList({
     </ul>
   )
 }
+
+export default TrackList

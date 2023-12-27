@@ -1,4 +1,4 @@
-import { currentTrack, isPlaying, type Track } from './state'
+import {setCurrentTrack, isPlaying, setIsPlaying, type Track, currentTrack } from './state'
 
 type Props = {
   tracks: Track[]
@@ -8,28 +8,38 @@ type Props = {
   imageUrl: string
 }
 
-export default function PlayButton({
+function PlayButton({
   tracks,
   albumId,
   albumName,
   artist,
   imageUrl,
 }: Props) {
+
+  const handleClick = () => {
+    setCurrentTrack({
+      ...tracks[0],
+          albumId: albumId,
+          albumName: albumName,
+          artist: artist,
+          imageUrl: imageUrl,
+    })
+    setCurrentTrack({
+      ...tracks[0],
+          albumId: albumId,
+          albumName: albumName,
+          artist: artist,
+          imageUrl: imageUrl,
+    })
+    setIsPlaying(true)
+  }
+
+
   return (
     <button
       type="button"
       class="text-pink-700 bg-gray-100 hover:bg-gray-200 focus-visible:ring-2 focus:outline-none focus:ring-black font-medium rounded-lg text-lg px-10 py-3 text-center inline-flex items-center dark:focus:ring-black mr-4"
-      onClick={() => {
-        currentTrack.value = {
-          ...tracks[0],
-          albumId,
-          albumName,
-          artist,
-          imageUrl,
-        }
-
-        isPlaying.value = true
-      }}
+      onClick={handleClick}
     >
       <svg
         class="w-6 h-6 mr-2 -ml-1 text-pink-700"
@@ -48,3 +58,5 @@ export default function PlayButton({
     </button>
   )
 }
+
+export default PlayButton;

@@ -1,6 +1,6 @@
 import { isPlaying, currentTrack } from './state'
 
-export default function Record({
+function Record({
   albumId,
   artist,
   title,
@@ -12,7 +12,7 @@ export default function Record({
   imageUrl: string
 }) {
   const isPlayingCurrentRecord =
-    isPlaying.value && currentTrack.value.albumId === albumId
+    isPlaying() && currentTrack().albumId === albumId
   const className =
     'absolute top-0 opacity-0 vynil-image vynil-animation-in' +
     (isPlayingCurrentRecord ? '-spinning' : '')
@@ -40,3 +40,6 @@ export default function Record({
     </div>
   )
 }
+
+
+export default Record
