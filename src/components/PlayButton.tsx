@@ -16,22 +16,15 @@ function PlayButton({
   imageUrl,
 }: Props) {
 
-  const handleClick = () => {
+  const handleButtonClick = () => {
     setCurrentTrack({
       ...tracks[0],
-          albumId: albumId,
-          albumName: albumName,
-          artist: artist,
-          imageUrl: imageUrl,
-    })
-    setCurrentTrack({
-      ...tracks[0],
-          albumId: albumId,
-          albumName: albumName,
-          artist: artist,
-          imageUrl: imageUrl,
-    })
-    setIsPlaying(true)
+      albumId: albumId,
+      albumName: albumName,
+      artist: artist,
+      imageUrl: imageUrl,
+    });
+    setIsPlaying(true);
   }
 
 
@@ -39,7 +32,7 @@ function PlayButton({
     <button
       type="button"
       class="text-pink-700 bg-gray-100 hover:bg-gray-200 focus-visible:ring-2 focus:outline-none focus:ring-black font-medium rounded-lg text-lg px-10 py-3 text-center inline-flex items-center dark:focus:ring-black mr-4"
-      onClick={handleClick}
+      onClick={() => handleButtonClick()}
     >
       <svg
         class="w-6 h-6 mr-2 -ml-1 text-pink-700"

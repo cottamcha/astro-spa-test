@@ -1,5 +1,5 @@
 
-import { currentTrack, isPlaying, setIsPlaying } from './state'
+import { currentTrack, setCurrentTrack, isPlaying, setIsPlaying } from './state'
 import { createEffect, createSignal, onCleanup, } from 'solid-js'
 
 const PlayIcon = (
@@ -47,7 +47,6 @@ export default function Player() {
 
   const track = currentTrack()
 
-
   if (!track) {
     return null
   }
@@ -55,6 +54,7 @@ export default function Player() {
   const { title, artist, albumName, imageUrl } = track
 
   function whilePlaying() {
+
     if (audioPlayerRef && audioPlayerRef.duration) {
       const percentage =
         (audioPlayerRef.currentTime * 100) / audioPlayerRef.duration
@@ -92,7 +92,6 @@ export default function Player() {
   })
 
   onCleanup(() => {
-    console.log("on cleanup triggered")
     cancelAnimationFrame(progressRef)
   })
 
@@ -148,7 +147,7 @@ export default function Player() {
             {artist}
           </div>
         </div>
-        <audio ref={el => (audioPlayerRef = el)} src="/mp3/song1.mp3" />
+        <audio ref={el => (audioPlayerRef = el)} src={audioPlayerRef.src} />
         <div class="flex gap-6 items-center text-black">
           <button
             type="button"
